@@ -30,6 +30,7 @@ func generateRandomBytes(n int) ([]byte, error) {
 	return b, nil
 }
 
+// Encryption helper function
 func encrypt(data []byte, key []byte) []byte {
 	block, _ := aes.NewCipher(key)
 	gcm, err := cipher.NewGCM(block)
@@ -44,6 +45,7 @@ func encrypt(data []byte, key []byte) []byte {
 	return ciphertext
 }
 
+// Decryption helper function
 func decrypt(data []byte, key []byte) []byte {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -62,6 +64,7 @@ func decrypt(data []byte, key []byte) []byte {
 	return plaintext
 }
 
+// Encrypt file and save
 func encryptFile(inputFilename string, outputFilename string, key []byte) {
 	// TODO: If possible, encrypt file in place
 	// or copy metadata to file
@@ -73,6 +76,7 @@ func encryptFile(inputFilename string, outputFilename string, key []byte) {
 	f.Write(encrypt(inputFile, key))
 }
 
+// Decrypt file and return contents
 func decryptFile(filename string, key []byte) []byte {
 	data, _ := ioutil.ReadFile(filename)
 	return decrypt(data, key)
