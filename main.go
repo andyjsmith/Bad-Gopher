@@ -1,6 +1,8 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -17,6 +19,53 @@ import (
 	"strings"
 	"time"
 )
+
+// Compresses one or many files into a single zip archive file.
+// Param 1: file is a file to add to the zip.
+func zipFile(filename string) ([]byte, error) {
+	// Create buffer to store zipped file
+	buf := new(bytes.Buffer)
+	zipWriter := zip.NewWriter(buf)
+
+	// Open file for reading
+	fileToZip, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer fileToZip.Close()
+
+	// Get the file information
+	info, err := fileToZip.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	header, err := zip.FileInfoHeader(info)
+	if err != nil {
+		return nil, err
+	}
+
+	// Using FileInfoHeader() above only uses the basename of the file. If we want
+	// to preserve the folder structure we can overwrite this with the full path.
+	// header.Name = filename
+
+	// Change to deflate to gain compression
+	// see http://golang.org/pkg/archive/zip/#pkg-constants
+	header.Method = zip.Store
+
+	// Create writer for adding file to zip
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return nil, err
+	}
+
+	// Write the file to the zip
+	_, err = io.Copy(writer, fileToZip)
+
+	zipWriter.Close()
+
+	return buf.Bytes(), err
+}
 
 // CSPRNG random byte generator
 func generateRandomBytes(n int) ([]byte, error) {
@@ -66,14 +115,11 @@ func decrypt(data []byte, key []byte) []byte {
 
 // Encrypt file and save
 func encryptFile(inputFilename string, outputFilename string, key []byte) {
-	// TODO: If possible, encrypt file in place
-	// or copy metadata to file
-	// or zip file first to preserve metadata (turn off compression)
-
-	inputFile, _ := ioutil.ReadFile(inputFilename)
+	// Zip file first to preserve metadata
+	zippedFile, _ := zipFile(inputFilename)
 	f, _ := os.Create(outputFilename)
 	defer f.Close()
-	f.Write(encrypt(inputFile, key))
+	f.Write(encrypt(zippedFile, key))
 }
 
 // Decrypt file and return contents
