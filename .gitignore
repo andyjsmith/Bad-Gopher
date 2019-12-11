@@ -18,3 +18,4 @@ testdir/
 *.pem
 *.txt
 *.txt.enc
+*.gopher
