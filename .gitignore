@@ -19,3 +19,4 @@ testdir/
 *.txt
 *.txt.enc
 *.gopher
+BAD_GOPHER_DECRYPT*

