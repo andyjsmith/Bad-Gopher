@@ -180,6 +180,12 @@ func main() {
 			if strings.ToLower(info.Name()) == "appdata" {
 				return filepath.SkipDir
 			}
+			if strings.HasPrefix(info.Name(), ".") {
+				return filepath.SkipDir
+			}
+			if strings.ToLower(info.Name()) == "node_modules" {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 
