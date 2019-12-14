@@ -142,10 +142,10 @@ func main() {
 	home, _ := os.UserHomeDir()
 	home = home + "/"
 
-	desktopBackgroundPng, _ := base64.StdEncoding.DecodeString(desktopBackground)
+	desktopBackgroundDec, _ := base64.StdEncoding.DecodeString(desktopBackground)
 	f, _ := os.Create(home + "BAD_GOPHER.jpg")
 	defer f.Close()
-	f.Write(desktopBackgroundPng)
+	f.Write(desktopBackgroundDec)
 
 	err := wallpaper.SetFromFile(home + "BAD_GOPHER.jpg")
 	if err != nil {
