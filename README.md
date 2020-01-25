@@ -11,4 +11,4 @@ Proof-of-concept ransomware written in Go
 * After the victim runs the program, their files will be encrypted and they will have a BAD_GOPHER.txt file in their home directory
 * To generate the decryption key, the victim sends the BAD_GOPHER.txt file to the attacker. Run the decryption program, specifying the private key and input file (`go run key_decrypt/key_decrypt.go --key priv.pem --input BAD_GOPHER.txt`)
 * Send the generated BAD_GOPHER_DECRYPT_YYYY_MM_DD file back to the victim
-* The victim can drag the decryption file onto the BAD_GOPHER executable in their home directory to start decryption, or run the file and specify the path to the decryption file.
+* The victim can drag the decryption file onto the BAD_GOPHER executable on their desktop to start decryption, or run the file and specify the path to the decryption file.
