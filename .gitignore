@@ -24,3 +24,6 @@ testdir/
 *.txt.enc
 *.gopher
 BAD_GOPHER_DECRYPT*
+*.jpg
+*.afdesign
+*.mp3
