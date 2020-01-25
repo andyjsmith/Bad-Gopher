@@ -14,6 +14,8 @@ import (
 )
 
 func main() {
+	// TODO: Make this more user-friendly, i.e. command line options for selecting
+	// file and ability to drag gopher key file onto exe to generate decryption key
 	privRaw, _ := ioutil.ReadFile("priv.pem")
 	fmt.Println(privRaw)
 	privPem, _ := pem.Decode(privRaw)
