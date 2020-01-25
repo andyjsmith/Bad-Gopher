@@ -31,6 +31,7 @@ func main() {
 	f, _ := os.Create("priv.pem")
 	f.Write(pemdata)
 	defer f.Close()
+	fmt.Println("Private key saved to priv.pem")
 
 	pubBytes := pem.EncodeToMemory(&pem.Block{
 		Type:  "RSA PUBLIC KEY",
@@ -40,4 +41,6 @@ func main() {
 	fp, _ := os.Create("pub.pem")
 	fp.Write(pubBytes)
 	defer fp.Close()
+	fmt.Println("Public key saved to pub.pem")
+	fmt.Println("Copy the pub.pem contents to publicKey in embeddedFiles.go before building.")
 }
